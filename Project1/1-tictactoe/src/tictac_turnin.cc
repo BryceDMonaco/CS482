@@ -51,7 +51,9 @@ int make_move(int board[][3])
 		int bestMoveY = -9999; 
 		int bestScore = -9999;
 
-		for (int i = 0; i < 3; i++)
+		bool foundImmediateWin = false;
+
+		for (int i = 0; i < 3 && !foundImmediateWin; i++)
 		{
 			//cout << "MM i=" << i << endl;
 
@@ -81,6 +83,17 @@ int make_move(int board[][3])
 
 					//Make the available move
 					*(*(newBoard + i) + j) = state;
+
+					if (IsGameOver(newBoard)) //No matter what, if this move is an immediate win, make it
+					{
+						bestMoveX = i;
+						bestMoveY = j;
+
+						foundImmediateWin = true;
+
+						break;
+
+					}
 
 					int thisMoveScore = FindNextBestMove (newBoard, -state, false, stepsTaken);
 
