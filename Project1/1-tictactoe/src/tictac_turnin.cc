@@ -1,8 +1,6 @@
 #include <tictac_support.h>
 #include <stdio.h>
 #include <iostream>
-#include <algorithm>
-#include <tuple>
 
 using namespace std;
 
@@ -10,11 +8,9 @@ bool IsGameOver (int board[][3]);
 bool IsGameOver (int** board); //An overload which converts the int** board to board[][3]
 int GetMovesRemaining (int board[][3]);
 int GetMovesRemaining (int** board); //An overload which converts the int** board to board[][3]
-int FindNextBestMove (int** board, int turn, bool myTurn, int turnCount);
+int FindNextBestMove (int** board, int turn, bool myTurn, int& turnCount);
 int* BoardToArray (int board[][3]);
 void CopyBoardPtr (int** from, int** to);
-
-
 
 /**
 	make_move: takes a board state and makes a legal 
@@ -45,9 +41,11 @@ int make_move(int board[][3])
 	if( state == 0 )
 		state = 1;
 
+	int stepsTaken = 0;
+
 	if (!IsGameOver(board)) //If the game has not been won and spaces remain
 	{
-		cout << "The game is not over, making a move" << endl;
+		//cout << "The game is not over, making a move" << endl;
 
 		int bestMoveX = -9999;
 		int bestMoveY = -9999; 
@@ -55,15 +53,15 @@ int make_move(int board[][3])
 
 		for (int i = 0; i < 3; i++)
 		{
-			cout << "MM i=" << i << endl;
+			//cout << "MM i=" << i << endl;
 
 			for (int j = 0; j < 3; j++)
 			{
-					cout << "MM j=" << j << endl;
+					//cout << "MM j=" << j << endl;
 
 				if (board[i][j] == 0) //Found a space which hasn't had a move made
 				{
-					cout << "Found an empty space at [" << i << "][" << j << "]" << endl;
+					//cout << "Found an empty space at [" << i << "][" << j << "]" << endl;
 
 					int** newBoard = new int*[3];
 					newBoard[0] = new int[3];
@@ -84,7 +82,7 @@ int make_move(int board[][3])
 					//Make the available move
 					*(*(newBoard + i) + j) = state;
 
-					int thisMoveScore = FindNextBestMove (newBoard, -state, false, 0);
+					int thisMoveScore = FindNextBestMove (newBoard, -state, false, stepsTaken);
 
 					if (thisMoveScore > bestScore)
 					{
@@ -103,10 +101,11 @@ int make_move(int board[][3])
 
 		//At this point all possible moves have been checked, now make the actual best move
 		cout << "Making a move at [" << bestMoveX << "][" << bestMoveY << "]" << endl;		
+		cout << "Took " << stepsTaken << " steps to find the best move." << endl;
 
 		board[bestMoveX][bestMoveY] = state;
 
-		return 1;
+		return stepsTaken;
 
 	} else
 	{
@@ -133,19 +132,11 @@ int make_move(int board[][3])
 	return 0;
 }
 
-int FindNextBestMove (int** board, int turn, bool myTurn, int turnCount)
+int FindNextBestMove (int** board, int turn, bool myTurn, int& turnCount)
 {
-	cout << "NB";
+	//cout << "NB";
 
 	//*(*(board+ 0) + 2) = 8; //An example of how to set board[0][2] to 8
-	/*
-	if (IsGameOver(board))
-	{
-		cout << "The game is over." << endl;
-
-		return 0;
-
-	}*/
 
 	if (GetMovesRemaining(board) == 0)
 	{
@@ -192,7 +183,9 @@ int FindNextBestMove (int** board, int turn, bool myTurn, int turnCount)
 					//Make the available move
 					*(*(newBoard + i) + j) = turn;
 
-					int thisMoveScore = FindNextBestMove (newBoard, -turn, false, 0);
+					turnCount++;
+
+					int thisMoveScore = FindNextBestMove (newBoard, -turn, false, turnCount);
 
 					if (thisMoveScore > bestScore)
 					{
@@ -234,7 +227,9 @@ int FindNextBestMove (int** board, int turn, bool myTurn, int turnCount)
 					//Make the available move
 					*(*(newBoard + i) + j) = turn;
 
-					int thisMoveScore = FindNextBestMove (newBoard, -turn, true, 0);
+					turnCount++;
+
+					int thisMoveScore = FindNextBestMove (newBoard, -turn, true, turnCount);
 
 					if (thisMoveScore < bestScore)
 					{
@@ -263,7 +258,7 @@ int FindNextBestMove (int** board, int turn, bool myTurn, int turnCount)
 //This overload converts a dynamic array pointer to an array
 bool IsGameOver (int** sentBoard)
 {
-		cout << "GOp";
+	//cout << "GOp";
 
 	bool spacesRemaining = false;
 	bool gameWon = false;
@@ -287,14 +282,14 @@ bool IsGameOver (int** sentBoard)
 //Returns true if the game has been won or if no spaces remain
 bool IsGameOver (int board[][3])
 {
-		cout << "GO";
+	//cout << "GO";
 
 	bool spacesRemaining = false;
 	bool gameWon = false;
 
 	spacesRemaining = GetMovesRemaining(board) > 0;
 
-	cout << "GO2";
+	//cout << "GO2";
 
 
 	//While there are spaces remaining and the game hasn't been won yet, check for wins
@@ -342,7 +337,7 @@ bool IsGameOver (int board[][3])
 
 	}
 
-	cout << "GO Check finished" << endl;
+	//cout << "GO Check finished" << endl;
 
 	/*
 	g | s | =
@@ -358,7 +353,7 @@ bool IsGameOver (int board[][3])
 //This overload converts a dynamic array pointer to an array
 int GetMovesRemaining (int** sentBoard)
 {
-		cout << "MRp";
+	//cout << "MRp";
 
 	int board[3][3];
 
@@ -378,7 +373,7 @@ int GetMovesRemaining (int** sentBoard)
 
 int GetMovesRemaining (int board[][3])
 {
-	cout << "MR";
+	//cout << "MR";
 
 	int openSpaces = 0;
 
@@ -387,7 +382,7 @@ int GetMovesRemaining (int board[][3])
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			cout << board[i][j] << " ";
+			//cout << board[i][j] << " ";
 
 			if (board[i][j] == 0)
 			{
@@ -396,10 +391,10 @@ int GetMovesRemaining (int board[][3])
 			}
 		}
 
-		cout << endl;
+		//cout << endl;
 	}
 
-	cout << "There are " << openSpaces << " spaces remaining" << endl << endl;
+	//cout << "There are " << openSpaces << " spaces remaining" << endl << endl;
 
 	return openSpaces;
 
@@ -407,7 +402,7 @@ int GetMovesRemaining (int board[][3])
 
 void CopyBoardPtr (int** from, int** to)
 {
-		cout << "CP";
+	//cout << "CP";
 
 	for (int i = 0; i < 3; i++)
 	{
