@@ -11,6 +11,11 @@
 
 using namespace std;
 
+bool DecodeLine (string line);
+int GetSpamOrHam (string line);
+string ConvertToAlphaNumeric (string sentString);
+bool IsCharAlphaNumeric (char sentChar);
+
 int main (int argc, char* argv [])
 {
     ifstream trainingDataFile;
@@ -19,6 +24,20 @@ int main (int argc, char* argv [])
     map <string, int>* spamMap = new map <string, int> ();
     map <string, int>* hamMap = new map <string, int> ();
 
+    trainingDataFile.open ("spam.csv");
+
+    string line;
+    getline (trainingDataFile, line); //The first line of a .csv is the headers, this skips it to the next line
+
+    for (int i = 0; i < 10; i++) //Change this to "while (!trainingDataFile.eof()) to run the entire file"
+    {
+        string line;
+
+        getline (trainingDataFile, line);
+
+        DecodeLine (line);
+
+    }
 
     //Dealloc Operations
     delete spamMap;
@@ -36,11 +55,15 @@ bool DecodeLine (string line)
 
     if (spamOrHam == 0) //Ham
     {
-        line.erase (0, 4);
+        line.erase (0, 3);
+
+        cout << "Detected ham" << endl;
 
     } else if (spamOrHam == 1) //Spam
     {
-        line.erase (0, 5);
+        line.erase (0, 4);
+
+        cout << "Detected spam" << endl;
 
     } else
     {
@@ -50,6 +73,8 @@ bool DecodeLine (string line)
 
     }
 
+    return true;
+
 }
 
 /**
@@ -58,11 +83,11 @@ bool DecodeLine (string line)
  */
 int GetSpamOrHam (string line)
 {
-    if (line.substr (0, 3) == "ham")
+    if (line.substr (0, 4).find ("ham,") != string::npos)
     {
         return 0;
 
-    } else if (line.substr (0, 4) == "spam")
+    } else if (line.substr (0, 5).find ("spam,") != string::npos)
     {
         return 1;
 
@@ -84,6 +109,8 @@ string ConvertToAlphaNumeric (string sentString)
         }
 
     }
+
+    return sentString;
 
 }
 
