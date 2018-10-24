@@ -3,13 +3,13 @@
  * Build with: g++ Training.cpp -o training -std=c++11
  */
 
- #include <iostream>
- #include <fstream>
- #include <string>
- #include <vector>
- #include <map>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
 
- using namespace std;
+using namespace std;
 
 int main (int argc, char* argv [])
 {
