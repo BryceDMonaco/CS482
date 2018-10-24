@@ -11,10 +11,11 @@
 
 using namespace std;
 
-bool DecodeLine (string line);
+bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap);
 int GetSpamOrHam (string line);
 string ConvertToAlphaNumeric (string sentString);
 bool IsCharAlphaNumeric (char sentChar);
+string GetNextToken (string line);
 
 int main (int argc, char* argv [])
 {
@@ -35,7 +36,11 @@ int main (int argc, char* argv [])
 
         getline (trainingDataFile, line);
 
-        DecodeLine (line);
+        if (!DecodeLine (line, spamMap, hamMap))
+        {
+            break; //An error occurred while decoding the line
+
+        }
 
     }
 
@@ -49,8 +54,9 @@ int main (int argc, char* argv [])
  * Recieves a line from main (), and handles calling all of the various functions to decode
  * Returns true if the line was successfully decoded, false otherwise.
  */
-bool DecodeLine (string line)
+bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap)
 {
+    //Decode ham or spam, then discard the "ham," or "spam," token
     int spamOrHam = GetSpamOrHam (line);
 
     if (spamOrHam == 0) //Ham
@@ -73,8 +79,40 @@ bool DecodeLine (string line)
 
     }
 
+    //Convert string to alphanumeric
+    line = ConvertToAlphaNumeric (line);
+
+    cout << "Parsing the AN line: " << line << endl;
+
+    //Parse tokens, send to appropriate map
+    while (!line.empty ())
+    {
+        string token = GetNextToken (line);
+
+        cout << "\tFound token: " << token << endl;
+
+        line.erase (0, token.length());
+
+    }
+
     return true;
 
+}
+
+/**
+ * Returns the next "word", if a space is not found, it returns the string since it must be the last token on the line
+ */
+string GetNextToken (string line)
+{
+    if (line.find (" ", 0) != string::npos)
+    {
+        return line.substr (0, line.find (" ", 0) + 1);
+
+    } else
+    {
+        return line;
+
+    }
 }
 
 /**
@@ -98,28 +136,23 @@ int GetSpamOrHam (string line)
     }
 }
 
+/**
+ * Clears a string of all characters not within the ranges defined in IsCharAlphaNumeric ()
+ */
 string ConvertToAlphaNumeric (string sentString)
 {
-    for (int i = 0; i < sentString.length(); i++)
-    {
-        if (!IsCharAlphaNumeric (sentString [i]))
-        {
-            sentString.erase (sentString.begin() + i);
-
-        }
-
-    }
+    sentString.erase(std::remove_if(sentString.begin(), sentString.end(), IsCharAlphaNumeric), sentString.end());
 
     return sentString;
 
 }
 
 /**
- * Used to check if a char is within the ranges [0, 9], [a, z], or [A, Z] 
+ * Used to check if a char is within the ranges [0, 9], [a, z], or [A, Z]
+ * Inverted due to how std::remove_if handles it in ConvertToAlphaNumeric () 
  */
 bool IsCharAlphaNumeric (char sentChar)
 {
-    return (sentChar >= '0' && sentChar <= '9') || (sentChar >= 'a' && sentChar <= 'z') || (sentChar >= 'A' && sentChar <= 'Z');
+    return !((sentChar >= '0' && sentChar <= '9') || (sentChar >= 'a' && sentChar <= 'z') || (sentChar >= 'A' && sentChar <= 'Z') || sentChar == ' ');
 
 }
-
