@@ -54,6 +54,7 @@ int main (int argc, char* argv [])
     cout << "Number of spam words (not unique): " << TotalWordOccurance (spamMap) << endl;
 
     PrintMapToFile ("hamfile.txt", hamMap);
+    PrintMapToFile ("spamfile.txt", spamMap);
 
     //Dealloc Operations
     delete spamMap;
