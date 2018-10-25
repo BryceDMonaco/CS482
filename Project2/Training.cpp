@@ -11,11 +11,15 @@
 
 using namespace std;
 
-bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap);
+bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap, map <string, int>* dictionaryMap);
+bool AddToMap (string token, map <string, int>* sentMap);
 int GetSpamOrHam (string line);
 string ConvertToAlphaNumeric (string sentString);
 bool IsCharAlphaNumeric (char sentChar);
 string GetNextToken (string line);
+int TotalWordOccurance (map <string, int>* sentMap);
+void PrintMapToFile (string fileNameWithExt, map <string, int>* sentMap); 
+string TrimLeadingAndTrailingSpace (string sentString);
 
 int main (int argc, char* argv [])
 {
@@ -24,29 +28,37 @@ int main (int argc, char* argv [])
 
     map <string, int>* spamMap = new map <string, int> ();
     map <string, int>* hamMap = new map <string, int> ();
+    map <string, int>* dictionaryMap = new map <string, int> (); //Used to keep track of all unique words, spamMap + hamMap = dictionaryMap
 
     trainingDataFile.open ("spam.csv");
 
     string line;
     getline (trainingDataFile, line); //The first line of a .csv is the headers, this skips it to the next line
 
-    for (int i = 0; i < 10; i++) //Change this to "while (!trainingDataFile.eof()) to run the entire file"
+    while (!trainingDataFile.eof()) //Change this to "while (!trainingDataFile.eof()) to run the entire file"
     {
         string line;
 
         getline (trainingDataFile, line);
 
-        if (!DecodeLine (line, spamMap, hamMap))
+        if (!DecodeLine (line, spamMap, hamMap, dictionaryMap))
         {
-            break; //An error occurred while decoding the line
+            cout << "Warning! Unparsable line: " << line << endl;
 
         }
 
     }
 
+    cout << "Number of unique words: " << (*dictionaryMap).size() << endl;
+    cout << "Number of ham words (not unique): " << TotalWordOccurance (hamMap) << endl;
+    cout << "Number of spam words (not unique): " << TotalWordOccurance (spamMap) << endl;
+
+    PrintMapToFile ("hamfile.txt", hamMap);
+
     //Dealloc Operations
     delete spamMap;
     delete hamMap;
+    delete dictionaryMap;
 
 }
 
@@ -54,7 +66,7 @@ int main (int argc, char* argv [])
  * Recieves a line from main (), and handles calling all of the various functions to decode
  * Returns true if the line was successfully decoded, false otherwise.
  */
-bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap)
+bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap, map <string, int>* dictionaryMap)
 {
     //Decode ham or spam, then discard the "ham," or "spam," token
     int spamOrHam = GetSpamOrHam (line);
@@ -89,9 +101,46 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
     {
         string token = GetNextToken (line);
 
-        cout << "\tFound token: " << token << endl;
+        cout << "\tFound token: |" << token << "| (Length = " << token.length() << ")" << endl;
+
+        string finalToken = TrimLeadingAndTrailingSpace (token);
+
+        cout << "\tMapping token: |" << finalToken << "| (Length = " << finalToken.length() << ")" << endl;
+
+        //Length > 1 to not record empty tokens of the form "" (generally from unknown chars)
+        if (token.length() > 1 && spamOrHam == 0) //Ham
+        {
+            AddToMap (finalToken, hamMap);
+            AddToMap (finalToken, dictionaryMap);
+
+        } else if (token.length() > 1 && spamOrHam == 1) //Spam
+        {
+            AddToMap (finalToken, spamMap);
+            AddToMap (finalToken, dictionaryMap);
+
+        }
 
         line.erase (0, token.length());
+
+    }
+
+    return true;
+
+}
+
+bool AddToMap (string token, map <string, int>* sentMap)
+{
+    map<string, int>::iterator it;
+
+    it = (*sentMap).find (token); //Returns an iterator to the position or map::end if nothing found
+
+    if (it == (*sentMap).end ()) //Nothing found, new entry
+    {
+        (*sentMap).insert (pair<string, int>(token, 1)); //Insert the token with an initial count of 1
+
+    } else
+    {
+        (*sentMap)[token] = (*sentMap)[token] + 1; //Increment the word count
 
     }
 
@@ -104,12 +153,16 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
  */
 string GetNextToken (string line)
 {
+
     if (line.find (" ", 0) != string::npos)
     {
-        return line.substr (0, line.find (" ", 0) + 1);
+        string token = line.substr (0, line.find (" ", 0) + 1);
+
+        return token;
 
     } else
     {
+
         return line;
 
     }
@@ -154,5 +207,59 @@ string ConvertToAlphaNumeric (string sentString)
 bool IsCharAlphaNumeric (char sentChar)
 {
     return !((sentChar >= '0' && sentChar <= '9') || (sentChar >= 'a' && sentChar <= 'z') || (sentChar >= 'A' && sentChar <= 'Z') || sentChar == ' ');
+
+}
+
+int TotalWordOccurance (map <string, int>* sentMap)
+{
+    int sum = 0;
+
+    for (map<string,int>::iterator it=(*sentMap).begin(); it!=(*sentMap).end(); ++it)
+    {
+        sum += it->second;
+
+    }
+    
+    return sum;
+
+}
+
+void PrintMapToFile (string fileNameWithExt, map <string, int>* sentMap) 
+{
+    ofstream outputFile;
+
+    outputFile.open (fileNameWithExt);
+
+    outputFile << TotalWordOccurance (sentMap) << endl;
+
+    for (map<string,int>::iterator it=(*sentMap).begin(); it!=(*sentMap).end(); ++it)
+    {
+        outputFile << it-> first << " " << it-> second << endl;
+
+    }
+    
+    return;
+
+}
+
+string TrimLeadingAndTrailingSpace (string sentString)
+{
+    //cout << "Recieved: |" << sentString << "|" << endl;
+
+    while (sentString[0] == ' ')
+    {
+        sentString = sentString.substr (1);
+
+    }
+
+    while (sentString[sentString.length () - 1] == ' ')
+    {
+        sentString.pop_back ();
+
+    }
+
+    //cout << "Trimmed To: |" << sentString << "|" << endl;
+
+    return sentString;
 
 }
