@@ -1,6 +1,7 @@
 /**
  * This program reads in strings from a CSV file
  * Build with: g++ Training.cpp -o training -std=c++11
+ * Run with: ./training -i spam.csv -os spamfile.txt -oh hamfile.txt
  */
 
 #include <iostream>
@@ -20,9 +21,12 @@ string GetNextToken (string line);
 int TotalWordOccurance (map <string, int>* sentMap);
 void PrintMapToFile (string fileNameWithExt, map <string, int>* sentMap); 
 string TrimLeadingAndTrailingSpace (string sentString);
+vector <string> DecodeCommandLineArgs (int argCount, char* args []);
 
 int main (int argc, char* argv [])
 {
+    vector <string> commandLineArgs = DecodeCommandLineArgs (argc, argv);
+
     ifstream trainingDataFile;
     ofstream outputFile;
 
@@ -30,7 +34,7 @@ int main (int argc, char* argv [])
     map <string, int>* hamMap = new map <string, int> ();
     map <string, int>* dictionaryMap = new map <string, int> (); //Used to keep track of all unique words, spamMap + hamMap = dictionaryMap
 
-    trainingDataFile.open ("spam.csv");
+    trainingDataFile.open (commandLineArgs [0]);
 
     string line;
     getline (trainingDataFile, line); //The first line of a .csv is the headers, this skips it to the next line
@@ -53,8 +57,8 @@ int main (int argc, char* argv [])
     cout << "Number of ham words (not unique): " << TotalWordOccurance (hamMap) << endl;
     cout << "Number of spam words (not unique): " << TotalWordOccurance (spamMap) << endl;
 
-    PrintMapToFile ("hamfile.txt", hamMap);
-    PrintMapToFile ("spamfile.txt", spamMap);
+    PrintMapToFile (commandLineArgs [2], hamMap);
+    PrintMapToFile (commandLineArgs [1], spamMap);
 
     //Dealloc Operations
     delete spamMap;
@@ -197,6 +201,16 @@ string ConvertToAlphaNumeric (string sentString)
 {
     sentString.erase(std::remove_if(sentString.begin(), sentString.end(), IsCharAlphaNumeric), sentString.end());
 
+    for (int i = 0; i < sentString.length(); i++)
+    {
+        if(sentString[i] <= 'Z' && sentString[i] >= 'A')
+        {
+            sentString[i] = sentString[i] - ('Z' - 'z');
+
+        }
+
+    }
+
     return sentString;
 
 }
@@ -262,5 +276,35 @@ string TrimLeadingAndTrailingSpace (string sentString)
     //cout << "Trimmed To: |" << sentString << "|" << endl;
 
     return sentString;
+
+}
+
+vector<string> DecodeCommandLineArgs (int argc, char* argv [])
+{
+    if (argc != 7)
+    {
+        cout << "Error: Invalid number of command arguments!!!" << endl;
+
+        vector<string> emptyVec;
+
+        return emptyVec; //Return an empty vector
+
+    } else
+    {
+        string inputFileName = argv [2];
+        string outputHamFile = argv [4];
+        string outputSpamFile = argv [6];
+
+        cout << "Found: " << inputFileName << " " << outputHamFile << " " << outputSpamFile << endl;
+
+        vector<string> vec;
+
+        vec.push_back (inputFileName);
+        vec.push_back (outputHamFile);
+        vec.push_back (outputSpamFile);
+
+        return vec;
+
+    }
 
 }
