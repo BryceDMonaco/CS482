@@ -53,7 +53,7 @@ int main (int argc, char* argv [])
 
     }
 
-    cout << "Number of unique words: " << (*dictionaryMap).size() << endl;
+    cout << "Number of words (not unique): " << TotalWordOccurance (dictionaryMap) << endl;
     cout << "Number of ham words (not unique): " << TotalWordOccurance (hamMap) << endl;
     cout << "Number of spam words (not unique): " << TotalWordOccurance (spamMap) << endl;
 
