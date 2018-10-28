@@ -9,7 +9,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <math.h>   
+#include <math.h>
+#include <algorithm>
 
 using namespace std;
 
