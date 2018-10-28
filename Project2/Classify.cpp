@@ -105,7 +105,8 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
         {
             int hamCount = itHam->second;
 
-            thisWordHamProbLog = log ((double) hamCount / (double) hamTotal);
+            //Calculates log (p(H|W) * p(H))
+            thisWordHamProbLog = log (((double) hamCount / (double) hamTotal) * probabilityHam);
 
         }
 
@@ -113,8 +114,9 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
         if (itSpam != (*spamMap).end ()) //Word found
         {
             int spamCount = itSpam->second;
-
-            thisWordSpamProbLog = log ((double) spamCount / (double) spamTotal);
+            
+            //Calculates log (p(S|W) * (p(S))
+            thisWordSpamProbLog = log (((double) spamCount / (double) spamTotal) * probabilitySpam);
 
         }
 
