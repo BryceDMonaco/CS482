@@ -20,9 +20,13 @@ string ConvertToAlphaNumeric (string sentString);
 bool IsCharAlphaNumeric (char sentChar);
 string TrimLeadingAndTrailingSpace (string sentString);
 map <string, int>* ProbabiilityFileToMap (ifstream* file);
+vector <string> DecodeCommandLineArgs (int argCount, char* args []);
 
 int main (int argc, char* argv [])
 {
+    //Files names are stored in the order {dataFile, spamFile, hamFile, outputFile}
+    vector <string> commandArgs = DecodeCommandLineArgs (argc, argv);
+
     int numberOfHamWords = 0;
     int numberOfSpamWords = 0;
     int numberOfWords = 0; //The total number of words (the sum of their occurances in each map)
@@ -35,11 +39,10 @@ int main (int argc, char* argv [])
     map <string, int>* hamMap;
     map <string, int>* spamMap;
 
-    (*hamFile).open ("hamfile.txt");
-    (*spamFile).open ("spamfile.txt");
-
-    outputFile.open ("classfication.txt");
-    dataFile.open ("spam.csv");
+    dataFile.open (commandArgs [0]);
+    (*spamFile).open (commandArgs [1]);
+    (*hamFile).open (commandArgs [2]);
+    outputFile.open (commandArgs [3]);
 
     (*hamFile) >> numberOfHamWords;
     (*spamFile) >> numberOfSpamWords;
@@ -50,6 +53,7 @@ int main (int argc, char* argv [])
 
     cout << "HM Length: " << (*hamMap).size() << "\nSM Length: " << (*spamMap).size() << endl;
     
+    /*
     vector <string> testMessages;
 
     testMessages.push_back ("\"Go until jurong point, crazy.. Available only in bugis n great world la e buffet... Cine there got amore wat...\"");
@@ -69,6 +73,22 @@ int main (int argc, char* argv [])
         cout << GetMessageHamOrSpam (testMessages[i], spamMap, hamMap, numberOfSpamWords, numberOfHamWords) << ": " << testMessages [i] << endl;
 
     }
+    */
+
+    while (!dataFile.eof())
+    {
+        string line;
+
+        getline (dataFile, line);
+
+        outputFile << GetMessageHamOrSpam (line, spamMap, hamMap, numberOfSpamWords, numberOfHamWords) << endl;
+
+    }
+
+    dataFile.close ();
+    (*spamFile).close ();
+    (*hamFile).close ();
+    outputFile.close ();
 
     return 0;
 
@@ -131,7 +151,9 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
 
     //cout << "P(h|message) = " << hamProbability << "\nP(s|message) = " << spamProbability << endl;
 
-    if (hamProbability >= spamProbability) //Message is most likely ham
+    cout << "\tLog(P(S))=" << to_string(logSpamProbablityTotal) << " Log(P(H))=" << to_string(logHamProbabilityTotal) << endl;
+
+    if (logHamProbabilityTotal >= logSpamProbablityTotal) //Message is most likely ham
     {
         return string ("HAM");
 
@@ -140,7 +162,6 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
         return string ("SPAM");
 
     }
-
 }
 
 /**
@@ -177,6 +198,9 @@ vector <string> ConvertMessageToTokens (string message)
 {
     vector <string> messageVec;
     string line;
+
+    //Chop off the classification by erasing everything up to and including the first comma
+    line = line.substr (line.find(",") + 1);
 
     //Convert the message to alphanumerics (Remove anything not in [a, z], [A, Z], or [0,9] and also keep spaces)
     line = ConvertToAlphaNumeric (message);
@@ -274,5 +298,37 @@ string TrimLeadingAndTrailingSpace (string sentString)
     //cout << "Trimmed To: |" << sentString << "|" << endl;
 
     return sentString;
+
+}
+
+vector<string> DecodeCommandLineArgs (int argc, char* argv [])
+{
+    if (argc != 9)
+    {
+        cout << "Error: Invalid number of command arguments!!!" << endl;
+
+        vector<string> emptyVec;
+
+        return emptyVec; //Return an empty vector
+
+    } else
+    {
+        string inputFileName = argv [2];
+        string spamProbFile = argv [4];
+        string hamProbFile = argv [6];
+        string outputFile = argv [8];
+
+        cout << "Found: " << inputFileName << " " << spamProbFile << " " << hamProbFile << " " << outputFile << endl;
+
+        vector<string> vec;
+
+        vec.push_back (inputFileName);
+        vec.push_back (spamProbFile);
+        vec.push_back (hamProbFile);
+        vec.push_back (outputFile);
+
+        return vec;
+
+    }
 
 }
