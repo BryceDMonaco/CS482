@@ -221,7 +221,7 @@ string ConvertToAlphaNumeric (string sentString)
  */
 bool IsCharAlphaNumeric (char sentChar)
 {
-    return !((sentChar >= '0' && sentChar <= '9') || (sentChar >= 'a' && sentChar <= 'z') || (sentChar >= 'A' && sentChar <= 'Z') || sentChar == ' ');
+    return !((sentChar >= 'a' && sentChar <= 'z') || (sentChar >= 'A' && sentChar <= 'Z') || sentChar == ' ');
 
 }
 
