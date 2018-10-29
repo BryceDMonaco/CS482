@@ -86,36 +86,51 @@ int main (int argc, char* argv [])
 /**
  * Recieves a line from main (), and handles calling all of the various functions to decode
  * Returns true if the line was successfully decoded, false otherwise.
+ * NOTE: keyFile is just used to create an answer key for the classify output. It is compared with the output from classify to help with debugging.
  */
 bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* hamMap, map <string, int>* dictionaryMap)
 {
     //Decode ham or spam, then discard the "ham," or "spam," token
     int spamOrHam = GetSpamOrHam (line);
 
+    ofstream keyFile;
+    keyFile.open ("keyFile.txt", ofstream::app);
+
     if (spamOrHam == 0) //Ham
     {
         line.erase (0, 3);
 
-        cout << "Detected ham" << endl;
+        //cout << "Detected ham" << endl;
+        keyFile << "HAM" << endl;
 
     } else if (spamOrHam == 1) //Spam
     {
         line.erase (0, 4);
 
-        cout << "Detected spam" << endl;
+        //cout << "Detected spam" << endl;
+        keyFile << "SPAM" << endl;
 
     } else
     {
-        cout << "Unrecognized ham or spam \"" << line << "\"" << endl;
+        //Attempt recovery
+        
 
-        return false;
+        bool startFound = false;
 
+        if (!startFound)
+        {
+            cout << "Unrecognized ham or spam \"" << line << "\"" << endl;
+            //keyFile << "UNKOWN" << endl;
+
+            return false;
+
+        }
     }
 
     //Convert string to alphanumeric
     line = ConvertToAlphaNumeric (line);
 
-    cout << "Parsing the AN line: " << line << endl;
+    //cout << "Parsing the AN line: " << line << endl;
 
     //Parse tokens, send to appropriate map
     while (!line.empty ())
@@ -150,6 +165,8 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
         line.erase (0, token.length());
 
     }
+
+    keyFile.close();
 
     return true;
 

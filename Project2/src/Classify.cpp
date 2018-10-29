@@ -24,6 +24,7 @@ bool IsCharAlphaNumeric (char sentChar);
 string TrimLeadingAndTrailingSpace (string sentString);
 map <string, int>* ProbabiilityFileToMap (ifstream* file);
 vector <string> DecodeCommandLineArgs (int argCount, char* args []);
+int GetSpamOrHam (string line);
 
 int main (int argc, char* argv [])
 {
@@ -55,36 +56,46 @@ int main (int argc, char* argv [])
     spamMap = ProbabiilityFileToMap (spamFile);
 
     cout << "HM Length: " << (*hamMap).size() << "\nSM Length: " << (*spamMap).size() << endl;
-    
-    /*
-    vector <string> testMessages;
 
-    testMessages.push_back ("\"Go until jurong point, crazy.. Available only in bugis n great world la e buffet... Cine there got amore wat...\"");
-    testMessages.push_back ("Ok lar... Joking wif u oni...");
-    testMessages.push_back ("Free entry in 2 a wkly comp to win FA Cup final tkts 21st May 2005. Text FA to 87121 to receive entry question(std txt rate)T&C's apply 08452810075over18's");
-    testMessages.push_back ("U dun say so early hor... U c already then say...");
-    testMessages.push_back ("\"Nah I don't think he goes to usf, he lives around here though\"");
-    testMessages.push_back ("\"FreeMsg Hey there darling it's been 3 week's now and no word back! I'd like some fun you up for it still? Tb ok! XxX std chgs to send, �1.50 to rcv\"");
-    testMessages.push_back ("Even my brother is not like to speak with me. They treat me like aids patent.");
-    testMessages.push_back ("As per your request 'Melle Melle (Oru Minnaminunginte Nurungu Vettam)' has been set as your callertune for all Callers. Press *9 to copy your friends Callertune");
-    testMessages.push_back ("WINNER!! As a valued network customer you have been selected to receivea �900 prize reward! To claim call 09061701461. Claim code KL341. Valid 12 hours only.");
-    testMessages.push_back ("Had your mobile 11 months or more? U R entitled to Update to the latest colour mobiles with camera for Free! Call The Mobile Update Co FREE on 08002986030");
-    testMessages.push_back ("\"I'm gonna be home soon and i don't want to talk about this stuff anymore tonight, k? I've cried enough today.\"");
+    //Used to skip the initial CSV header line
+    string throwawayLine;
+    getline (dataFile, throwawayLine);
 
-    for (int i = 0; i < testMessages.size(); i++)
-    {
-        cout << GetMessageHamOrSpam (testMessages[i], spamMap, hamMap, numberOfSpamWords, numberOfHamWords) << ": " << testMessages [i] << endl;
-
-    }
-    */
+    int lineCount = 0;
 
     while (!dataFile.eof())
     {
+        cout << "On line " << lineCount;
+
         string line;
 
         getline (dataFile, line);
 
-        outputFile << GetMessageHamOrSpam (line, spamMap, hamMap, numberOfSpamWords, numberOfHamWords) << endl;
+        cout << "...Line Read:" << line << endl;
+
+        if (line.length() > 0)
+        {
+            string messageHamOrSpam = GetMessageHamOrSpam (line, spamMap, hamMap, numberOfSpamWords, numberOfHamWords);
+
+            if (messageHamOrSpam != "NULL")
+            {
+                outputFile << messageHamOrSpam << endl;
+
+            } else
+            {
+                cout << "NULL returned" << endl;
+
+                outputFile << "HAM" << endl;
+
+            }
+        } else
+        {
+            outputFile << "HAM" << endl;
+
+        }   
+
+        lineCount++;
+
 
     }
 
@@ -93,12 +104,14 @@ int main (int argc, char* argv [])
     (*hamFile).close ();
     outputFile.close ();
 
+    cout << "Classify done!" << endl;
+
     return 0;
 
 }
 
 /**
- * Returns 1 if spam, 0 if ham
+ * Returns "SPAM" if spam, "HAM" if ham
  */
 string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <string, int>* hamMap, int spamTotal, int hamTotal)
 {
@@ -112,6 +125,13 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
 
     vector <string> tokens = ConvertMessageToTokens (message);
 
+    if (tokens.size() == 0)
+    {
+        return "NULL";
+
+    }
+
+    //Calculate p(s|w) and p(h|w) for each token in the message
     for (int i = 0; i < tokens.size (); i++)
     {
         string token = tokens [i];
@@ -120,8 +140,8 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
         map<string, int>::iterator itSpam = (*spamMap).find (token); //Returns an iterator to the position or map::end if nothing found
 
         //These are initialized to 0 so that if they aren't found in their maps the word does not affect the overall probability
-        double thisWordHamProbLog = 0.0; 
-        double thisWordSpamProbLog = 0.0;
+        double sumValueS = 0.0;
+        double sumValueH = 0.0;
 
         //Check if the word exists in the ham map
         if (itHam != (*hamMap).end ()) //Word found
@@ -129,7 +149,9 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
             int hamCount = itHam->second;
 
             //Calculates log (p(H|W) * p(H))
-            thisWordHamProbLog = log (((double) hamCount / (double) hamTotal) * probabilityHam);
+            //thisWordHamProbLog = log (((double) hamCount / (double) hamTotal) * probabilityHam);
+            double prob = ((double) hamCount / (double) hamTotal) * probabilityHam;
+            sumValueH = log (1.0 - prob) - log (prob);
 
         }
 
@@ -139,24 +161,28 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
             int spamCount = itSpam->second;
             
             //Calculates log (p(S|W) * (p(S))
-            thisWordSpamProbLog = log (((double) spamCount / (double) spamTotal) * probabilitySpam);
+            double prob = ((double) spamCount / (double) spamTotal) * probabilitySpam;
+            sumValueS = log (1.0 - prob) - log (prob);
 
         }
 
-        logHamProbabilityTotal += thisWordHamProbLog;
-        logSpamProbablityTotal += thisWordSpamProbLog;
+        logHamProbabilityTotal += sumValueH;
+        logSpamProbablityTotal += sumValueS;
 
     }
 
     //At this point all words in the message have had their probabilities calculated and added to the total log probability, need to convert from log(x) to x
-    double hamProbability = exp (logHamProbabilityTotal);
-    double spamProbability = exp (logSpamProbablityTotal);
+    //double hamProbability = exp (logHamProbabilityTotal);
+    double spamProbability = 1.0 / (1.0 + exp (logSpamProbablityTotal));
+    double hamProbability = 1.0 / (1.0 + exp (logHamProbabilityTotal)); 
 
-    //cout << "P(h|message) = " << hamProbability << "\nP(s|message) = " << spamProbability << endl;
+    cout << "\tP(s|message) = " << spamProbability << " P(h|message) = " << hamProbability << endl;
 
-    cout << "\tLog(P(S))=" << to_string(logSpamProbablityTotal) << " Log(P(H))=" << to_string(logHamProbabilityTotal) << endl;
+    //cout << "\tLog(P(S))=" << to_string(logSpamProbablityTotal) << " Log(P(H))=" << to_string(logHamProbabilityTotal) << endl;
 
-    if (logHamProbabilityTotal > logSpamProbablityTotal) //Message is most likely ham
+    //Comparing the log values instead of the actual probability values since the probabilities are typically so small that they just show as 0.00000.
+    //...This works because a > b -> log(a) > log(b)
+    if (spamProbability >= 1.0e-35) //Message is most likely ham, 1.0e-35 is a threshold set manually
     {
         return string ("HAM");
 
@@ -184,7 +210,7 @@ map <string, int>* ProbabiilityFileToMap (ifstream* file)
 
         if (token.length() >= 1)
         {
-            cout << "Found Token: " << token << " and count: " << tokenCount << " Length:" << token.length() << endl;
+            //cout << "Found Token: " << token << " and count: " << tokenCount << " Length:" << token.length() << endl;
 
             (*thisMap).insert (pair<string, int>(token, tokenCount));
 
@@ -200,13 +226,28 @@ map <string, int>* ProbabiilityFileToMap (ifstream* file)
 vector <string> ConvertMessageToTokens (string message)
 {
     vector <string> messageVec;
-    string line;
+
+    int spamOrHam = GetSpamOrHam (message);
+
+    //From Training.cpp, to ensure that the messages are parsed the same
+    if (spamOrHam == 0) //Ham
+    {
+        message.erase (0, 3);
+
+    } else if (spamOrHam == 1) //Spam
+    {
+        message.erase (0, 4);
+
+    } else
+    {
+        return messageVec; //Return the empty vector
+    }
 
     //Chop off the classification by erasing everything up to and including the first comma
-    line = line.substr (line.find(",") + 1);
+    //line = line.substr (line.find(",") + 1);
 
     //Convert the message to alphanumerics (Remove anything not in [a, z], [A, Z], or [0,9] and also keep spaces)
-    line = ConvertToAlphaNumeric (message);
+    string line = ConvertToAlphaNumeric (message);
 
     //Parse tokens from message
     while (!line.empty ())
@@ -334,4 +375,25 @@ vector<string> DecodeCommandLineArgs (int argc, char* argv [])
 
     }
 
+}
+
+/**
+ * Used to parse in the first CSV value, which should be either "ham" or "spam".
+ * Returns 0 if ham, 1 if spam, -1 otherwise (unknown)
+ */
+int GetSpamOrHam (string line)
+{
+    if (line.substr (0, 4).find ("ham,") != string::npos)
+    {
+        return 0;
+
+    } else if (line.substr (0, 5).find ("spam,") != string::npos)
+    {
+        return 1;
+
+    } else
+    {
+        return -1;
+
+    }
 }
