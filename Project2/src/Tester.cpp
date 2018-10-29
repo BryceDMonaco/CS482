@@ -5,6 +5,13 @@
 
 using namespace std;
 
+/**
+ * This is a small, non-required program to check my classification accuracy. The file paths are hard-coded.
+ * Needs training to run first, to generate the keyFile.txt file, also needs classify to run.
+ * Fails if either file is longer than the other.
+ * Compile with: g++ Tester.cpp -o tester -std=c++11
+ */
+
 vector <string> FileToVector (string fileName);
 
 int main ()
