@@ -94,7 +94,7 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
     int spamOrHam = GetSpamOrHam (line);
 
     ofstream keyFile;
-    keyFile.open ("keyFile.txt", ofstream::app);
+    keyFile.open ("Project2/src/keyFile.txt", ofstream::app);
 
     if (spamOrHam == 0) //Ham
     {
@@ -119,10 +119,17 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
 
         if (!startFound)
         {
-            cout << "Unrecognized ham or spam \"" << line << "\"" << endl;
-            //keyFile << "UNKOWN" << endl;
+            //cout << "Unrecognized ham or spam \"" << line << "\"" << endl;
+            spamOrHam = 0;
 
-            return false;
+            if (line.length() > 0)
+            {
+                keyFile << "HAM" << endl;
+
+            }
+
+
+            //return false;
 
         }
     }

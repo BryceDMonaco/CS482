@@ -63,15 +63,18 @@ int main (int argc, char* argv [])
 
     int lineCount = 0;
 
+    ofstream logFile;
+    logFile.open("LOG.txt");
+
     while (!dataFile.eof())
     {
-        cout << "On line " << lineCount;
+        //cout << "On line " << lineCount;
 
         string line;
 
         getline (dataFile, line);
 
-        cout << "...Line Read:" << line << endl;
+        //cout << "...Line Read:" << line << endl;
 
         if (line.length() > 0)
         {
@@ -85,12 +88,14 @@ int main (int argc, char* argv [])
             {
                 cout << "NULL returned" << endl;
 
-                outputFile << "HAM" << endl;
+                outputFile << "ham" << endl;
 
             }
         } else
         {
-            outputFile << "HAM" << endl;
+            cout << "Bad line:" << " " << line << endl;
+
+            outputFile << "ham" << endl;
 
         }   
 
@@ -184,11 +189,11 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
     //...This works because a > b -> log(a) > log(b)
     if (spamProbability >= 1.0e-35) //Message is most likely ham, 1.0e-35 is a threshold set manually
     {
-        return string ("HAM");
+        return string ("ham");
 
     } else //Message is most likely spam
     {
-        return string ("SPAM");
+        return string ("spam");
 
     }
 }

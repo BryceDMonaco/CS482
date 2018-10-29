@@ -17,7 +17,7 @@ vector <string> FileToVector (string fileName);
 int main ()
 {
 	vector <string> keyEntries = FileToVector ("keyFile.txt");
-	vector <string> classEntries = FileToVector ("Project2/src/classification.txt");
+	vector <string> classEntries = FileToVector ("classification.txt");
 
 	if (keyEntries.size() != classEntries.size())
 	{
@@ -39,7 +39,7 @@ int main ()
 
 	}
 
-	cout << correctCount << " / " << keyEntries.size() << " Correct." << endl;
+	cout << correctCount << " / " << keyEntries.size() << " Correct. (" << (correctCount * 100) / keyEntries.size() << "%)" << endl;
 
 	return 0;
 
