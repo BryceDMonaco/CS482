@@ -2,6 +2,9 @@
  * This program reads in strings from a CSV file
  * Build with: g++ Training.cpp -o training -std=c++11
  * Run with: ./training -i spam.csv -os spamfile.txt -oh hamfile.txt
+ * To run with CMake, from the CS482 directory:     * cmake Project2
+ *                                                  * make
+ *                                                  * ./training -i Project2/src/spam.csv -os Project2/src/spamfile.txt -oh Project2/src/hamfile.txt
  */
 
 #include <iostream>

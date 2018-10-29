@@ -1,7 +1,9 @@
 /**
  * This program reads in strings from a CSV file
  * Build with: g++ Classify.cpp -o classify -std=c++11
- * Run with: 
+  * To run with CMake, from the CS482 directory:    * cmake Project2
+ *                                                  * make
+ *                                                  * ./classify -i Project2/src/spam.csv -is Project2/src/spamfile.txt -ih Project2/src/hamfile.txt -o Project2/src/classification.txt
  */
 
 #include <iostream>
