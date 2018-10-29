@@ -21,8 +21,11 @@ bool IsCharAlphaNumeric (char sentChar);
 string GetNextToken (string line);
 int TotalWordOccurance (map <string, int>* sentMap);
 void PrintMapToFile (string fileNameWithExt, map <string, int>* sentMap); 
+void PrintMapToCSVFile (string fileNameWithExt, map <string, int>* sentMap);
 string TrimLeadingAndTrailingSpace (string sentString);
 vector <string> DecodeCommandLineArgs (int argCount, char* args []);
+map<string, int>* CleanMapOfCommonWords (map<string, int>* sentMap);
+map<string, int>* CleanMapOfUncommonWords (map<string, int>* sentMap);
 
 int main (int argc, char* argv [])
 {
@@ -53,6 +56,15 @@ int main (int argc, char* argv [])
         }
 
     }
+
+    spamMap = CleanMapOfCommonWords (spamMap);
+    spamMap = CleanMapOfUncommonWords (spamMap);
+
+    hamMap = CleanMapOfCommonWords (hamMap);
+    hamMap = CleanMapOfUncommonWords (hamMap);
+
+    dictionaryMap = CleanMapOfCommonWords (dictionaryMap);
+    dictionaryMap = CleanMapOfUncommonWords (dictionaryMap);
 
     cout << "Number of words (not unique): " << TotalWordOccurance (dictionaryMap) << endl;
     cout << "Number of ham words (not unique): " << TotalWordOccurance (hamMap) << endl;
@@ -107,22 +119,28 @@ bool DecodeLine (string line, map <string, int>* spamMap, map <string, int>* ham
     {
         string token = GetNextToken (line);
 
-        cout << "\tFound token: |" << token << "| (Length = " << token.length() << ")" << endl;
+        //cout << "\tFound token: |" << token << "| (Length = " << token.length() << ")" << endl;
 
         string finalToken = TrimLeadingAndTrailingSpace (token);
 
-        cout << "\tMapping token: |" << finalToken << "| (Length = " << finalToken.length() << ")" << endl;
-
         //Length > 1 to not record empty tokens of the form "" (generally from unknown chars)
-        if (token.length() > 1 && spamOrHam == 0) //Ham
+        if (token.length() > 1 && spamOrHam == 0 && finalToken.length() != 0) //Ham
         {
+            //cout << "\tMapping token: |" << finalToken << "| (Length = " << finalToken.length() << ")" << endl;
+
             AddToMap (finalToken, hamMap);
             AddToMap (finalToken, dictionaryMap);
 
-        } else if (token.length() > 1 && spamOrHam == 1) //Spam
+        } else if (token.length() > 1 && spamOrHam == 1 && finalToken.length() != 0) //Spam
         {
+            //cout << "\tMapping token: |" << finalToken << "| (Length = " << finalToken.length() << ")" << endl;
+
             AddToMap (finalToken, spamMap);
             AddToMap (finalToken, dictionaryMap);
+
+        } else 
+        {
+            //cout << "\tDiscarding token: |" << finalToken << "| (Length = " << finalToken.length() << ")" << endl;
 
         }
 
@@ -258,6 +276,24 @@ void PrintMapToFile (string fileNameWithExt, map <string, int>* sentMap)
 
 }
 
+void PrintMapToCSVFile (string fileNameWithExt, map <string, int>* sentMap) 
+{
+    ofstream outputFile;
+
+    outputFile.open (fileNameWithExt);
+
+    outputFile << "word,count,,," << endl;
+
+    for (map<string,int>::iterator it=(*sentMap).begin(); it!=(*sentMap).end(); ++it)
+    {
+        outputFile << it-> first << ", " << it-> second << endl;
+
+    }
+    
+    return;
+
+}
+
 string TrimLeadingAndTrailingSpace (string sentString)
 {
     //cout << "Recieved: |" << sentString << "|" << endl;
@@ -307,5 +343,51 @@ vector<string> DecodeCommandLineArgs (int argc, char* argv [])
         return vec;
 
     }
+
+}
+
+map<string, int>* CleanMapOfCommonWords (map<string, int>* sentMap)
+{
+    vector <string> commonWords = {"i", "you", "to", "the", "a", "u", "and", "is", "it", "of"};
+
+    for (int i = 0; i < commonWords.size(); i++)
+    {
+        if ((*sentMap).find (commonWords [i]) != (*sentMap).end())
+        {
+            (*sentMap).erase (commonWords [i]);
+
+        }
+
+    }
+
+    return sentMap;
+
+}
+
+map<string, int>* CleanMapOfUncommonWords (map<string, int>* sentMap)
+{
+    //Map entries with a count less than this will be erased 
+    int minAllowedCount = 5;
+
+    map<string,int>::iterator it = (*sentMap).begin();
+
+    map<string, int>* newMap = new map <string, int> ();
+
+    while (it!=(*sentMap).end())
+    {
+        if (it->second >= minAllowedCount)
+        {
+            string token = it->first;
+            int count = it->second;
+
+            (*newMap).insert (pair<string, int>(token, count));
+
+        }
+
+        ++it;
+
+    }
+
+    return newMap;
 
 }

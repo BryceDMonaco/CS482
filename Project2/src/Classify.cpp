@@ -154,7 +154,7 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
 
     cout << "\tLog(P(S))=" << to_string(logSpamProbablityTotal) << " Log(P(H))=" << to_string(logHamProbabilityTotal) << endl;
 
-    if (logHamProbabilityTotal >= logSpamProbablityTotal) //Message is most likely ham
+    if (logHamProbabilityTotal > logSpamProbablityTotal) //Message is most likely ham
     {
         return string ("HAM");
 
