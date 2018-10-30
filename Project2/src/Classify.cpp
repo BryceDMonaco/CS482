@@ -55,7 +55,7 @@ int main (int argc, char* argv [])
     hamMap = ProbabiilityFileToMap (hamFile);
     spamMap = ProbabiilityFileToMap (spamFile);
 
-    cout << "HM Length: " << (*hamMap).size() << "\nSM Length: " << (*spamMap).size() << endl;
+    cout << "Number of Ham: " << numberOfHamWords << "\nNumber of Spam: " << numberOfSpamWords << endl;
 
     //Used to skip the initial CSV header line
     string throwawayLine;
@@ -86,9 +86,9 @@ int main (int argc, char* argv [])
 
             } else
             {
-                cout << "NULL returned" << endl;
+                cout << "NULL returned---" << line << endl;
 
-                outputFile << "ham" << endl;
+                outputFile << "spam" << endl;
 
             }
         } else
@@ -116,17 +116,14 @@ int main (int argc, char* argv [])
 }
 
 /**
- * Returns "SPAM" if spam, "HAM" if ham
+ * Returns "spam" if spam, "ham" if ham
  */
 string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <string, int>* hamMap, int spamTotal, int hamTotal)
 {
-    double logHamProbabilityTotal = 0.0;
-    double logSpamProbablityTotal = 0.0;
-
     int totalNumberOfWords = spamTotal + hamTotal;
 
-    double probabilitySpam = (double) spamTotal / (double) totalNumberOfWords;
-    double probabilityHam = (double) hamTotal / (double) totalNumberOfWords;
+    double probabilitySpam = (double) spamTotal / (double) totalNumberOfWords; //The probability of any word being spam, p(s)
+    double probabilityHam = (double) hamTotal / (double) totalNumberOfWords; //The probability of any word being ham, p(h)
 
     vector <string> tokens = ConvertMessageToTokens (message);
 
@@ -136,66 +133,67 @@ string GetMessageHamOrSpam (string message, map <string, int>* spamMap, map <str
 
     }
 
-    //Calculate p(s|w) and p(h|w) for each token in the message
-    for (int i = 0; i < tokens.size (); i++)
+    double messageSpamProbability = 1.0; //p(s|message)
+    double messageHamProbability = 1.0; //p(h|message)
+
+    for (int i = 0; i < tokens.size(); i++)
     {
         string token = tokens [i];
 
-        map<string, int>::iterator itHam = (*hamMap).find (token); //Returns an iterator to the position or map::end if nothing found
-        map<string, int>::iterator itSpam = (*spamMap).find (token); //Returns an iterator to the position or map::end if nothing found
+        map<string, int>::iterator hamIt = (*hamMap).find(token);
+        map<string, int>::iterator spamIt = (*spamMap).find(token);
 
-        //These are initialized to 0 so that if they aren't found in their maps the word does not affect the overall probability
-        double sumValueS = 0.0;
-        double sumValueH = 0.0;
+        int spamOccurances = 0;
+        int hamOccurances = 0;
 
-        //Check if the word exists in the ham map
-        if (itHam != (*hamMap).end ()) //Word found
+        double tokenHamProb; //p(h|token)
+        double tokenSpamProb; //p(s|token)
+
+        if (hamIt != (*hamMap).end()) //Word found in the ham map
         {
-            int hamCount = itHam->second;
+            hamOccurances = hamIt->second;
 
-            //Calculates log (p(H|W) * p(H))
-            //thisWordHamProbLog = log (((double) hamCount / (double) hamTotal) * probabilityHam);
-            double prob = ((double) hamCount / (double) hamTotal) * probabilityHam;
-            sumValueH = log (1.0 - prob) - log (prob);
+            tokenHamProb = probabilityHam * ((double) hamOccurances / (double) hamTotal); //Still need to divide by p(token)
+
+        } else
+        {
+            tokenHamProb = probabilityHam * 0.00000001; //Still need to divide by p(token)
 
         }
 
-        //Check if the word exists in the spam map
-        if (itSpam != (*spamMap).end ()) //Word found
+        if (spamIt != (*spamMap).end()) //Word found in the spam map
         {
-            int spamCount = itSpam->second;
-            
-            //Calculates log (p(S|W) * (p(S))
-            double prob = ((double) spamCount / (double) spamTotal) * probabilitySpam;
-            sumValueS = log (1.0 - prob) - log (prob);
+            spamOccurances = spamIt->second;
+
+            tokenSpamProb = probabilitySpam * ((double) spamOccurances / (double) spamTotal); //Still need to divide by p(token)
+
+        } else
+        {
+            tokenSpamProb = probabilitySpam * 0.00000001; //Still need to divide by p(token)
 
         }
 
-        logHamProbabilityTotal += sumValueH;
-        logSpamProbablityTotal += sumValueS;
+        int totalOccurances = hamOccurances + spamOccurances;
+        double probabilityToken = (double) totalOccurances / (double) totalNumberOfWords;
+
+        messageHamProbability *= tokenHamProb / probabilityToken;
+        messageSpamProbability *= tokenSpamProb / probabilityToken;
 
     }
 
-    //At this point all words in the message have had their probabilities calculated and added to the total log probability, need to convert from log(x) to x
-    //double hamProbability = exp (logHamProbabilityTotal);
-    double spamProbability = 1.0 / (1.0 + exp (logSpamProbablityTotal));
-    double hamProbability = 1.0 / (1.0 + exp (logHamProbabilityTotal)); 
+    cout << "p(s|message)=" << messageSpamProbability << " p(h|message)=" << messageHamProbability << endl;
 
-    cout << "\tP(s|message) = " << spamProbability << " P(h|message) = " << hamProbability << endl;
-
-    //cout << "\tLog(P(S))=" << to_string(logSpamProbablityTotal) << " Log(P(H))=" << to_string(logHamProbabilityTotal) << endl;
-
-    //Comparing the log values instead of the actual probability values since the probabilities are typically so small that they just show as 0.00000.
-    //...This works because a > b -> log(a) > log(b)
-    if (spamProbability >= 1.0e-35) //Message is most likely ham, 1.0e-35 is a threshold set manually
+    if (messageHamProbability > messageSpamProbability)
     {
-        return string ("ham");
+        return "ham";
 
-    } else //Message is most likely spam
+    } else
     {
-        return string ("spam");
+        return "spam";
 
     }
+
+    
 }
 
 /**
@@ -238,9 +236,12 @@ vector <string> ConvertMessageToTokens (string message)
     if (spamOrHam == 0) //Ham
     {
         message.erase (0, 3);
+        cout << "HAM --- ";
 
     } else if (spamOrHam == 1) //Spam
     {
+
+        cout << "SPAM --- ";
         message.erase (0, 4);
 
     } else

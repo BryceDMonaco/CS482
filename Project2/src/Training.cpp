@@ -394,7 +394,7 @@ map<string, int>* CleanMapOfCommonWords (map<string, int>* sentMap)
 map<string, int>* CleanMapOfUncommonWords (map<string, int>* sentMap)
 {
     //Map entries with a count less than this will be erased 
-    int minAllowedCount = 5;
+    int minAllowedCount = 1;
 
     map<string,int>::iterator it = (*sentMap).begin();
 
