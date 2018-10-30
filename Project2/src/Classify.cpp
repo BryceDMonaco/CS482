@@ -6,6 +6,8 @@
  *                                                  * ./classify -i Project2/src/spam.csv -is Project2/src/spamfile.txt -ih Project2/src/hamfile.txt -o Project2/src/classification.txt
  */
 
+//TODO, get it to work, changed alphanumeric to replace symbols/numbers with spaces instead of dropping them
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -59,7 +61,7 @@ int main (int argc, char* argv [])
 
     //Used to skip the initial CSV header line
     string throwawayLine;
-    getline (dataFile, throwawayLine);
+    //getline (dataFile, throwawayLine);
 
     int lineCount = 0;
 
