@@ -245,7 +245,8 @@ int GetSpamOrHam (string line)
  */
 string ConvertToAlphaNumeric (string sentString)
 {
-    sentString.erase(std::remove_if(sentString.begin(), sentString.end(), IsCharAlphaNumeric), sentString.end());
+    //sentString.erase(std::remove_if(sentString.begin(), sentString.end(), IsCharAlphaNumeric), sentString.end());
+    replace_if(sentString.begin(), sentString.end(), IsCharAlphaNumeric, ' ');
 
     for (int i = 0; i < sentString.length(); i++)
     {
