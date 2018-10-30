@@ -60,14 +60,14 @@ int main (int argc, char* argv [])
 
     }
 
-    spamMap = CleanMapOfCommonWords (spamMap);
-    spamMap = CleanMapOfUncommonWords (spamMap);
+    //spamMap = CleanMapOfCommonWords (spamMap);
+    //spamMap = CleanMapOfUncommonWords (spamMap);
 
-    hamMap = CleanMapOfCommonWords (hamMap);
-    hamMap = CleanMapOfUncommonWords (hamMap);
+    //hamMap = CleanMapOfCommonWords (hamMap);
+    //hamMap = CleanMapOfUncommonWords (hamMap);
 
-    dictionaryMap = CleanMapOfCommonWords (dictionaryMap);
-    dictionaryMap = CleanMapOfUncommonWords (dictionaryMap);
+    //dictionaryMap = CleanMapOfCommonWords (dictionaryMap);
+    //dictionaryMap = CleanMapOfUncommonWords (dictionaryMap);
 
     cout << "Number of words (not unique): " << TotalWordOccurance (dictionaryMap) << endl;
     cout << "Number of ham words (not unique): " << TotalWordOccurance (hamMap) << endl;
