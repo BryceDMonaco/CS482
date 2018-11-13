@@ -5,4 +5,5 @@
 *.json
 *.py
 
+# Project3 required the assignment to be written in Python, so .py files need to be allowed
 !Project3/*
