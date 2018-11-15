@@ -51,6 +51,15 @@ def kf_update(u, sigma, z):
 #	returns: [door_dist] updated door distribution
 
 def door_update(u, sigma, d, door_dist):
+	door_index = int(u[0]/1000)  # Used so we know which door's probability to change
+
+	"""
+	D = There is a door
+	S = The sensor is correct
+	P(D|S)=P(S|D)*P(D)/P(S)
+	P(D|S)=0.6*(1/1024)/0.48=0.00122070312
+	"""
+
 	return door_dist
 
 
