@@ -20,9 +20,9 @@ import scipy.stats
 
 def kf_update(u, sigma, z):
 	# Variable setup
-	delta_t = 0.1  # Need to find this value
-	little_sigma_x = 100
-	little_sigma_z = 100
+	delta_t = 1  # Need to find this value
+	little_sigma_x = 5
+	little_sigma_z = 10
 	
 	u_now = u
 
