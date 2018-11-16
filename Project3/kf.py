@@ -50,7 +50,7 @@ def kf_update(u, sigma, z):
 #			door_dist (array of size 10): probability (0..1) that a door exists at each location (0..9)
 #	returns: [door_dist] updated door distribution
 
-count_array = [[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]  # 2D array of counts for each door, [#counts there is a door, #counts there is not a door]
+count_array = [[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]  # 2D array of counts for each door, [#counts there is a door, #counts there is not a door], iniitalized to make P(D)=0.5
 
 def door_update(u, sigma, d, door_dist):
 	door_index = int(u[0]/100)  # Used so we know which door's probability to change
