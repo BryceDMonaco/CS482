@@ -69,12 +69,13 @@ def door_update(u, sigma, d, door_dist):
 	else:
 		count_array[door_index][1] = count_array[door_index][1] + 1 # Inc the count of times d is false
 
-	prob_d = count_array[door_index][0] / count_array[door_index][1]
+	prob_d = float(count_array[door_index][0]) / float(count_array[door_index][1])
 
 	# Update the prob for the door we are currently at, leave all others the same
-	door_dist[door_index] = np.clip(1.25*prob_d, 0, 1)  # This shouldn't need to be clipped (clamped) but floating point error sometimes makes it 1.00000001 which makes the red bar fill the entire vertical space above it
+	# Why 1.25*prob_d? See the multiline comment above
+	door_dist[door_index] = np.clip(1.25*prob_d, 0.0, 1.0)  # This shouldn't need to be clipped (clamped) but floating point error sometimes makes it 1.00000001 which makes the red bar fill the entire vertical space above it
 
-	return door_dist
+	return door_dist  # Note: The probability will level out over time and will likely be wrong the first few times this function is called
 
 
 
