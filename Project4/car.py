@@ -24,24 +24,41 @@ def discretize_state(x, xdot):
     if x < -1.2 or x > 0.6:
         return -1
 
-    if x < -0.75:
+    if x < -0.9875:
         box = 0
-    elif x < -0.3:
+    elif x < -0.775:
         box = 1
-    elif x < 0.45:
+    elif x < -0.5625:
         box = 2
-    else:
+    elif x < -0.35:
         box = 3
-
-    box *= 4
-    if xdot < -0.5:
-        box += 0
-    elif xdot < 0.5:
-        box +=1
+    elif x < -0.1375:
+        box = 4
+    elif x < 0.075:
+        box = 5
+    elif x < 0.2875:
+        box = 6
+    elif x < 0.5:
+        box = 7
     else:
-        box +=2
+        box = 8
 
-    return 0
+    box *= 9
+
+    if xdot < -0.05:
+        box += 0
+    elif xdot < -0.025:
+        box += 1
+    elif xdot < 0.0:
+        box += 2
+    elif xdot < 0.025:
+        box += 3
+    elif xdot < 0.05:
+        box += 4
+    else:
+        box += 5
+
+    return box
 
 
 if __name__ == '__main__':
@@ -77,7 +94,7 @@ if __name__ == '__main__':
     ############################################
 
 
-    Q = np.zeros([162, env.action_space.n])
+    Q = np.zeros([77, env.action_space.n])
 
     ############################################
     # CS482: Here are some of the RL parameters
@@ -85,7 +102,7 @@ if __name__ == '__main__':
     # (alpha) and the discount factor (gamma)
     ############################################
 
-    alpha = 0.9
+    alpha = 0.4
     gamma = 0.87
 
     n_episodes = 50001
@@ -124,7 +141,8 @@ if __name__ == '__main__':
         # car task
         ############################################
        
-        if tick < 2000:
-            print "fail ", tick
-        else:
+       # This task is hard coded to stop the attempt at tick 200
+        if tick >= 200:
+            print "fail ", tick, " ", episode % 1000
+        else: #If it reaches the flag before 200, success
             print "success"
