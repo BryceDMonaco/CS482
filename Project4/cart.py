@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ############################################
 
 
-    Q = np.zeros([161, env.action_space.n])
+    Q = np.zeros([162, env.action_space.n])
 
     ############################################
     # CS482: Here are some of the RL parameters
@@ -109,8 +109,8 @@ if __name__ == '__main__':
     # (alpha) and the discount factor (gamma)
     ############################################
 
-    alpha = 0.5
-    gamma = 0.97
+    alpha = 0.9
+    gamma = 0.87
 
     n_episodes = 50001
     for episode in range(n_episodes):
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                 predicted_value = 0
                 reward = -5
 
-            Q[s,action] += 0
+            Q[s,action] += alpha * (reward + (gamma * predicted_value) - Q[s,action])
 
             s = sprime
 
