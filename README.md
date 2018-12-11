@@ -11,4 +11,4 @@ This project consists of two programs. The first, Training.cpp takes in a set of
 This project had us taking a program provided by our professor and writing functions in kf.py to utulize a 1D kalman filter to find the probability that a simualted robot is at a certain position.
 
 ### Project 4: AI 
-This project has us writing a simple machine learning algorithm to help a computer drive a cart up a hill.
+This project has us writing a simple machine learning algorithm to help a computer drive a cart up a hill and also to balance a stick on a platform. cart.py is the stick program and most of the code was provided to us. Our goal for cart.py was to implement Q-learning (line 137) and to tune the alpha (learning rate) and gamma (decay) values. For car.py we had to implement our own function for discretizing the state.
