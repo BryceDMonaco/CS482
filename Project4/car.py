@@ -144,5 +144,5 @@ if __name__ == '__main__':
        # This task is hard coded to stop the attempt at tick 200
         if tick >= 200:
             print "fail ", tick, " ", episode % 1000
-        else: #If it reaches the flag before 200, success
+        else:  # If it reaches the flag before 200, success
             print "success"

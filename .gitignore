@@ -8,3 +8,7 @@
 # Project3 and Project4 required the assignment to be written in Python, so .py files need to be allowed
 !Project3/*
 !Project4/*
+
+# Ignore files created by the submission script
+*-pre.py
+submission.json
